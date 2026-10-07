@@ -1,0 +1,12 @@
+# تنظیمات انتشار فرانت‌اند BKV روی Netlify
+#
+# در پنل Netlify هنگام اتصال ریپو:
+#   Base directory  ->  BKV - Dash/frontend
+# (build command و publish directory از همین فایل خوانده می‌شود)
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"

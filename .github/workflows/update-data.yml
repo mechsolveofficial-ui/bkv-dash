@@ -1,0 +1,98 @@
+name: Update BKV Data
+
+# هر ۵ دقیقه پایپ‌لاین BKV-Dash-V10.py را اجرا می‌کند (اسکرپ + تحلیل)
+# و خروجی (bkv_data.json + dollar_history_expert.csv + meta.json) را
+# روی برنچ `data` منتشر می‌کند.
+#
+# نکته: برنچ data همیشه «یک کامیت اورفن» است که با force-push جایگزین
+# می‌شود؛ یعنی تاریخچه مخزن با هر اجرا بزرگ نمی‌شود.
+#
+# ⚠️ پیش‌نیازها:
+#  - این فایل باید روی برنچ پیش‌فرض (main) مخزن باشد تا زمان‌بندی فعال شود.
+#  - مخزن باید Public باشد (هم برای خواندن raw توسط فرانت‌اند، هم
+#    برای سهمیه رایگان Action Minutes).
+#  - گیت‌هاب در ساعات شلوغی ممکن است اجراهای زمان‌بندی‌شده را چند دقیقه
+#    با تأخیر (گاهی تا ۱۵ دقیقه) اجرا کند؛ این طبیعی است.
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # هر ۵ دقیقه
+  workflow_dispatch:          # اجرای دستی برای تست
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bkv-data-update
+  cancel-in-progress: true    # اجرای قبلی هنوز تمام نشده → لغو و شروع دوباره
+
+jobs:
+  update:
+    runs-on: ubuntu-latest    # Google Chrome از قبل نصب است
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: "BKV - Dash"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # اسکرپ دلار افزایشی است؛ CSV قبلی را از برنچ data برمی‌گردانیم
+      # تا هر بار کل تاریخچه از صفر اسکرپ نشود.
+      - name: Restore incremental dollar history
+        run: |
+          if git ls-remote --exit-code origin data >/dev/null 2>&1; then
+            git fetch --depth 1 origin data
+            git checkout FETCH_HEAD -- dollar_history_expert.csv || echo "CSV روی برنچ data نیست؛ اسکرپ کامل انجام می‌شود."
+          else
+            echo "برنچ data هنوز وجود ندارد؛ اسکرپ کامل انجام می‌شود."
+          fi
+
+      - name: Run pipeline
+        run: python BKV-Dash-V10.py
+
+      - name: Prepare publish files
+        run: |
+          mkdir -p /tmp/data-publish
+          cp -f bkv_data.json /tmp/data-publish/
+          cp -f dollar_history_expert.csv /tmp/data-publish/ 2>/dev/null || true
+          NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          cat > /tmp/data-publish/meta.json <<META
+          {
+            "generated_at_utc": "$NOW",
+            "run_id": "${{ github.run_id }}",
+            "repository": "${{ github.repository }}"
+          }
+          META
+
+      - name: Publish to data branch
+        working-directory: /tmp/data-publish
+        run: |
+          git init -q
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -qb data
+          git add .
+          git commit -qm "data: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+
+          # اگر دیتا نسبت به انتشار قبلی هیچ تغییری نکرده (مثلاً تعطیلی بازار)
+          # اصلاً push نکن؛ «آخرین بروزرسانی» در فرانت هم همان لحظه تغییر واقعی دیتا می‌ماند.
+          if git ls-remote --exit-code origin data >/dev/null 2>&1; then
+            git fetch -q --depth 1 origin data
+            if git diff --quiet FETCH_HEAD HEAD -- bkv_data.json dollar_history_expert.csv >/dev/null 2>&1; then
+              echo "دیتا تغییری نکرده است؛ push انجام نشد."
+              exit 0
+            fi
+          fi
+          git push -q --force origin data
+          echo "✅ دیتا روی برنچ data منتشر شد."

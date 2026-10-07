@@ -1,0 +1,6 @@
+{
+  "name": "Bourse Kala View",
+  "description": "Commodity market analysis dashboard comparing real and historical data",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
