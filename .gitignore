@@ -9,3 +9,5 @@ BKV - Dash/ریالی/*.xlsx
 
 # فایل‌های تست موقت
 _test_*.py
+
+.freebuff/

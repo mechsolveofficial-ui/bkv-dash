@@ -2,22 +2,27 @@ name: Update BKV Data
 
 # هر ۵ دقیقه پایپ‌لاین BKV-Dash-V10.py را اجرا می‌کند (اسکرپ + تحلیل)
 # و خروجی (bkv_data.json + dollar_history_expert.csv + meta.json) را
-# روی برنچ `data` منتشر می‌کند.
+# روی برنچ `data` مخزن پابلیک «mechsolveofficial-ui/bkv-data» منتشر می‌کند.
+# زمان‌بندی الان روزانه سه بار است: 08:00 و 11:30 و 12:30 به وقت تهران.
 #
 # نکته: برنچ data همیشه «یک کامیت اورفن» است که با force-push جایگزین
 # می‌شود؛ یعنی تاریخچه مخزن با هر اجرا بزرگ نمی‌شود.
 #
 # ⚠️ پیش‌نیازها:
 #  - این فایل باید روی برنچ پیش‌فرض (main) مخزن باشد تا زمان‌بندی فعال شود.
-#  - مخزن باید Public باشد (هم برای خواندن raw توسط فرانت‌اند، هم
-#    برای سهمیه رایگان Action Minutes).
+#  - секрет DATA_REPO_TOKEN در مخزن کد ست شده باشد (PAT با پرمیشن repo)
+#    چون GITHUB_TOKEN عادی به مخزن دیگری (bkv-data) دسترسی push ندارد.
 #  - گیت‌هاب در ساعات شلوغی ممکن است اجراهای زمان‌بندی‌شده را چند دقیقه
 #    با تأخیر (گاهی تا ۱۵ دقیقه) اجرا کند؛ این طبیعی است.
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # هر ۵ دقیقه
-  workflow_dispatch:          # اجرای دستی برای تست
+    # همه به وقت تهران (UTC+3:30):
+    #   08:00 تهران = 04:30 UTC   |   11:30 تهران = 08:00 UTC   |   12:30 تهران = 09:00 UTC
+    - cron: "30 4 * * *"
+    - cron: "0 8 * * *"
+    - cron: "0 9 * * *"
+  workflow_dispatch:          # اجرای دستی برای تست + دکمهٔ «اجرای پایپ‌لاین» در فرانت‌اند
 
 permissions:
   contents: write
@@ -50,8 +55,9 @@ jobs:
       # تا هر بار کل تاریخچه از صفر اسکرپ نشود.
       - name: Restore incremental dollar history
         run: |
-          if git ls-remote --exit-code origin data >/dev/null 2>&1; then
-            git fetch --depth 1 origin data
+          # CSV قبلی از مخزن دیتا (bkv-data) برنچ data برمی‌گردد
+          if git ls-remote --exit-code "https://x-access-token:${{ secrets.DATA_REPO_TOKEN }}@github.com/mechsolveofficial-ui/bkv-data.git" data >/dev/null 2>&1; then
+            git fetch --depth 1 "https://x-access-token:${{ secrets.DATA_REPO_TOKEN }}@github.com/mechsolveofficial-ui/bkv-data.git" data
             git checkout FETCH_HEAD -- dollar_history_expert.csv || echo "CSV روی برنچ data نیست؛ اسکرپ کامل انجام می‌شود."
           else
             echo "برنچ data هنوز وجود ندارد؛ اسکرپ کامل انجام می‌شود."
@@ -83,7 +89,7 @@ jobs:
           git checkout -qb data
           git add .
           git commit -qm "data: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          git remote add origin "https://x-access-token:${{ secrets.DATA_REPO_TOKEN }}@github.com/mechsolveofficial-ui/bkv-data.git"
 
           # اگر دیتا نسبت به انتشار قبلی هیچ تغییری نکرده (مثلاً تعطیلی بازار)
           # اصلاً push نکن؛ «آخرین بروزرسانی» در فرانت هم همان لحظه تغییر واقعی دیتا می‌ماند.
