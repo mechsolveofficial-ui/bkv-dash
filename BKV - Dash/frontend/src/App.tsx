@@ -1,20 +1,33 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { BkvData } from './types';
-import { Code2, RefreshCw } from 'lucide-react';
+import { Code2, RefreshCw, PlayCircle } from 'lucide-react';
 import { PYTHON_SCRIPT } from './PythonScript';
 
 // =====================================================================
 // ⚙️ آدرس دیتای خودکار — خروجی GitHub Actions روی برنچ `data`
-// مخزن: https://github.com/aletaha-ali/bkv-dash
+// کد پروژه در مخزن «mechsolveofficial-ui/bkv-dash» است؛ دیتا در مخزن پابلیک
+// «mechsolveofficial-ui/bkv-data» منتشر می‌شود.
 // =====================================================================
-const DATA_BASE_URL = 'https://raw.githubusercontent.com/aletaha-ali/bkv-dash/data';
+const DATA_BASE_URL = 'https://raw.githubusercontent.com/mechsolveofficial-ui/bkv-data/data';
 
 // هماهنگ با زمان‌بندی GitHub Actions (هر ۵ دقیقه)
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
 
+// ── اجرای دستی پایپ‌لاین از طریق Netlify Function ──
+// این فانکشن سمت سروررون workflow_dispatch روی مخزن کد صدا می‌زند؛
+// توکن GitHub فقط و فقط در سمت سرور (env var به نام TRIGGER_TOKEN) می‌ماند.
+const RUN_ENDPOINT = '/.netlify/functions/trigger-bkv';
+
 type DataSource = 'auto' | 'manual' | null;
 type AutoStatus = 'idle' | 'loading' | 'ok' | 'error';
+type RunStatus = 'idle' | 'starting' | 'running' | 'ok' | 'error';
+
+// نمایش پیام خطای خاموش‌شده از سمت سرور (بدون لو رفتن جزئیات حساس)
+const RUN_ERROR_MESSAGES: Record<string, string> = {
+  not_configured: 'اجرای دستی سرور تنظیم نشده است (TRIGGER_TOKEN روی Netlify ست نشده).',
+  github_error: 'اجرای پایپ‌لاین در GitHub شروع نشد. بعداً دوباره تلاش کنید.',
+};
 
 // نمایش تاریخ/ساعت به وقت تهران با تقویم شمسی (بدون کتابخانه اضافه)
 const formatTehranTime = (iso: string): string => {
@@ -40,6 +53,8 @@ export default function App() {
   // پس از آپلود دستی، دریافت خودکار متوقف می‌شود تا دیتای دستی جایگزین نشود
   const [autoPaused, setAutoPaused] = useState(false);
   const [showScript, setShowScript] = useState(false);
+  const [runStatus, setRunStatus] = useState<RunStatus>('idle');
+  const [runMessage, setRunMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autoPausedRef = useRef(false);
 
@@ -85,6 +100,56 @@ export default function App() {
     }, AUTO_REFRESH_MS);
     return () => clearInterval(id);
   }, [fetchAutoData]);
+
+  // ── اجرای دستی پایپ‌لاین از فرانت ──
+  // ۱) درخواست به Netlify Function → dispatch وورک‌فلو روی GitHub
+  // ۲) پولینگ هر ۲۵ ثانیه تا تغییر meta.json (یعنی اجرا تمام و دیتای جدید منتشر شده)
+  const runPipeline = useCallback(async () => {
+    if (runStatus === 'starting' || runStatus === 'running') return;
+    setRunStatus('starting');
+    setRunMessage(null);
+    try {
+      const res = await fetch(RUN_ENDPOINT, { method: 'POST' });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(body?.error ?? 'github_error');
+      }
+      const startedAtIso: string = body?.previous_generated_at_utc ?? '';
+      setRunStatus('running');
+      setRunMessage('پایپ‌لاین در GitHub شروع شد؛ منتظر انتشار دیتای جدید…');
+
+      const deadline = Date.now() + 10 * 60 * 1000; // حداکثر ۱۰ دقیقه صبر
+      const poll = async (): Promise<boolean> => {
+        if (Date.now() > deadline) return false;
+        const bust = `?t=${Date.now()}`;
+        const metaRes = await fetch(`${DATA_BASE_URL}/meta.json${bust}`).catch(() => null);
+        if (!metaRes || !metaRes.ok) {
+          await new Promise(r => setTimeout(r, 25_000));
+          return poll();
+        }
+        const meta = await metaRes.json().catch(() => null);
+        if (meta?.generated_at_utc && (!startedAtIso || meta.generated_at_utc > startedAtIso)) {
+          return true;
+        }
+        await new Promise(r => setTimeout(r, 25_000));
+        return poll();
+      };
+
+      const done = await poll();
+      if (done) {
+        setRunMessage('✅ دیتای جدید منتشر شد؛ فرانت بروزرسانی می‌شود…');
+        await fetchAutoData();
+        setRunStatus('ok');
+        setRunMessage(null);
+      } else {
+        setRunStatus('error');
+        setRunMessage('اجرا بیش از ۱۰ دقیقه طول کشید. دیتا ممکن است به‌زودی منتشر شود؛ دستی «بروزرسانی» را بزنید.');
+      }
+    } catch (err: any) {
+      setRunStatus('error');
+      setRunMessage(RUN_ERROR_MESSAGES[err?.message] ?? 'اجرای دستی ناموفق بود. دوباره تلاش کنید.');
+    }
+  }, [runStatus, fetchAutoData]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -147,6 +212,17 @@ export default function App() {
               آدرس دیتای خودکار تنظیم نشده
             </div>
           )}
+          {runMessage && (
+            <div
+              className={`text-xs px-2 py-1 rounded border ${
+                runStatus === 'error'
+                  ? 'text-rose-400 bg-rose-500/10 border-rose-500/20'
+                  : 'text-blue-300 bg-blue-500/10 border-blue-500/20'
+              }`}
+            >
+              {runMessage}
+            </div>
+          )}
           {dataUrlConfigured && autoStatus === 'error' && (
             <div
               className="text-xs text-rose-400 bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20"
@@ -166,6 +242,20 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={runPipeline}
+            disabled={runStatus === 'starting' || runStatus === 'running'}
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm transition-all border bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="اجرای پایپ‌لاین روی GitHub Actions و دریافت دیتای تازه"
+          >
+            <PlayCircle className={`w-4 h-4 ${runStatus === 'running' ? 'animate-pulse' : ''}`} />
+            <span>
+              {runStatus === 'starting' ? 'در حال ارسال…'
+                : runStatus === 'running' ? 'در حال اجرا…'
+                : runStatus === 'ok' ? 'انجام شد ✓'
+                : 'اجرای پایپ‌لاین'}
+            </span>
+          </button>
           <button
             onClick={() => setShowScript(true)}
             className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700 text-sm"
