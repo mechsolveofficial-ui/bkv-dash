@@ -37,6 +37,15 @@
   font-display: swap;
 }
 
+/* اعمال فونت وزیرمتن بر تمام المان‌ها به‌ویژه دکمه‌ها و هدر */
+html, body, #root {
+  font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif;
+}
+
+button, input, select, textarea {
+  font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif !important;
+}
+
 @layer utilities {
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;

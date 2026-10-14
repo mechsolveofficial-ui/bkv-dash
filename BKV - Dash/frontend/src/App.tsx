@@ -246,7 +246,7 @@ export default function App() {
         <div className="flex items-center gap-2 flex-wrap justify-center">
           {lastUpdateIso && source === 'auto' && (
             <div
-              className="text-xs text-emerald-400 font-mono bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20"
+              className="text-xs text-emerald-400 font-medium bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20"
               title="آخرین بروزرسانی دیتا — به وقت تهران"
             >
               آخرین بروزرسانی: {formatTehranTime(lastUpdateIso)}
