@@ -1,32 +1,28 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { BkvData } from './types';
-import { Code2, RefreshCw, PlayCircle } from 'lucide-react';
+import { Code2, RefreshCw, PlayCircle, KeyRound, X, Check } from 'lucide-react';
 import { PYTHON_SCRIPT } from './PythonScript';
 
 // =====================================================================
 // ⚙️ آدرس دیتای خودکار — خروجی GitHub Actions روی برنچ `data`
-// کد پروژه در مخزن «mechsolveofficial-ui/bkv-dash» است؛ دیتا در مخزن پابلیک
-// «mechsolveofficial-ui/bkv-data» منتشر می‌شود.
 // =====================================================================
 const DATA_BASE_URL = 'https://raw.githubusercontent.com/mechsolveofficial-ui/bkv-data/data';
+const GITHUB_REPO = ((import.meta as any).env?.VITE_GITHUB_REPO as string) || 'mechsolveofficial-ui/bkv-dash';
+const GITHUB_WORKFLOW = 'update-data.yml';
+const RUN_ENDPOINT = '/.netlify/functions/trigger-bkv';
 
 // هماهنگ با زمان‌بندی GitHub Actions (هر ۵ دقیقه)
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
-
-// ── اجرای دستی پایپ‌لاین از طریق Netlify Function ──
-// این فانکشن سمت سروررون workflow_dispatch روی مخزن کد صدا می‌زند؛
-// توکن GitHub فقط و فقط در سمت سرور (env var به نام TRIGGER_TOKEN) می‌ماند.
-const RUN_ENDPOINT = '/.netlify/functions/trigger-bkv';
 
 type DataSource = 'auto' | 'manual' | null;
 type AutoStatus = 'idle' | 'loading' | 'ok' | 'error';
 type RunStatus = 'idle' | 'starting' | 'running' | 'ok' | 'error';
 
-// نمایش پیام خطای خاموش‌شده از سمت سرور (بدون لو رفتن جزئیات حساس)
 const RUN_ERROR_MESSAGES: Record<string, string> = {
-  not_configured: 'اجرای دستی سرور تنظیم نشده است (TRIGGER_TOKEN روی Netlify ست نشده).',
-  github_error: 'اجرای پایپ‌لاین در GitHub شروع نشد. بعداً دوباره تلاش کنید.',
+  not_configured: 'توکن گیت‌هاب تنظیم نشده است. روی آیکون کلید کلیک کنید.',
+  invalid_token: 'توکن گیت‌هاب نامعتبر است یا دسترسی‌های لازم (repo و workflow) را ندارد.',
+  github_error: 'اجرای پایپ‌لاین در GitHub شروع نشد. وضعیت اینترنت یا توکن را بررسی کنید.',
 };
 
 // نمایش تاریخ/ساعت به وقت تهران با تقویم شمسی (بدون کتابخانه اضافه)
@@ -55,6 +51,11 @@ export default function App() {
   const [showScript, setShowScript] = useState(false);
   const [runStatus, setRunStatus] = useState<RunStatus>('idle');
   const [runMessage, setRunMessage] = useState<string | null>(null);
+  const [githubToken, setGithubToken] = useState<string>(
+    () => localStorage.getItem('bkv_github_token') || ((import.meta as any).env?.VITE_GITHUB_TOKEN as string) || ''
+  );
+  const [showTokenModal, setShowTokenModal] = useState(false);
+  const [tempTokenInput, setTempTokenInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autoPausedRef = useRef(false);
 
@@ -101,22 +102,71 @@ export default function App() {
     return () => clearInterval(id);
   }, [fetchAutoData]);
 
-  // ── اجرای دستی پایپ‌لاین از فرانت ──
-  // ۱) درخواست به Netlify Function → dispatch وورک‌فلو روی GitHub
-  // ۲) پولینگ هر ۲۵ ثانیه تا تغییر meta.json (یعنی اجرا تمام و دیتای جدید منتشر شده)
-  const runPipeline = useCallback(async () => {
-    if (runStatus === 'starting' || runStatus === 'running') return;
-    setRunStatus('starting');
-    setRunMessage(null);
+  // ── ارسال درخواست اجرای پایپ‌لاین (اول از Netlify Function، سپس مستقیم از GitHub API) ──
+  const dispatchPipeline = async (token: string): Promise<void> => {
+    // ۱) بررسی Netlify Function اگر فعال باشد
     try {
-      const res = await fetch(RUN_ENDPOINT, { method: 'POST' });
-      const body = await res.json().catch(() => null);
-      if (!res.ok) {
-        throw new Error(body?.error ?? 'github_error');
+      const netlifyRes = await fetch(RUN_ENDPOINT, { method: 'POST' });
+      if (netlifyRes.ok) return;
+    } catch {
+      // سرورلس فانکشن در هاست استاتیک وجود ندارد؛ مستقیم به GitHub می‌رویم
+    }
+
+    // ۲) ارتباط مستقیم با GitHub API
+    if (!token) {
+      throw new Error('not_configured');
+    }
+
+    const ghRes = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${GITHUB_WORKFLOW}/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token.trim()}`,
+          Accept: 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ref: 'main' }),
       }
-      const startedAtIso: string = body?.previous_generated_at_utc ?? '';
+    );
+
+    if (ghRes.status === 204) {
+      return;
+    }
+    if (ghRes.status === 401 || ghRes.status === 403) {
+      throw new Error('invalid_token');
+    }
+    throw new Error('github_error');
+  };
+
+  // ── اجرای دستی پایپ‌لاین و بررسی تغییر دیتای خروجی ──
+  const runPipeline = useCallback(async (overrideToken?: string) => {
+    if (runStatus === 'starting' || runStatus === 'running') return;
+    const activeToken = (overrideToken ?? githubToken).trim();
+
+    if (!activeToken) {
+      setTempTokenInput('');
+      setShowTokenModal(true);
+      return;
+    }
+
+    setRunStatus('starting');
+    setRunMessage('در حال اتصال به GitHub…');
+    try {
+      // ثبت آخرین زمان دیتای فعلی
+      let previousGeneratedAt = '';
+      try {
+        const metaRes = await fetch(`${DATA_BASE_URL}/meta.json?t=${Date.now()}`);
+        if (metaRes.ok) {
+          const meta = await metaRes.json();
+          previousGeneratedAt = meta?.generated_at_utc ?? '';
+        }
+      } catch {}
+
+      await dispatchPipeline(activeToken);
+
       setRunStatus('running');
-      setRunMessage('پایپ‌لاین در GitHub شروع شد؛ منتظر انتشار دیتای جدید…');
+      setRunMessage('پایپ‌لاین در GitHub شروع شد؛ در حال استخراج و تحلیل داده‌ها…');
 
       const deadline = Date.now() + 10 * 60 * 1000; // حداکثر ۱۰ دقیقه صبر
       const poll = async (): Promise<boolean> => {
@@ -124,32 +174,40 @@ export default function App() {
         const bust = `?t=${Date.now()}`;
         const metaRes = await fetch(`${DATA_BASE_URL}/meta.json${bust}`).catch(() => null);
         if (!metaRes || !metaRes.ok) {
-          await new Promise(r => setTimeout(r, 25_000));
+          await new Promise((r) => setTimeout(r, 15_000));
           return poll();
         }
         const meta = await metaRes.json().catch(() => null);
-        if (meta?.generated_at_utc && (!startedAtIso || meta.generated_at_utc > startedAtIso)) {
+        if (meta?.generated_at_utc && (!previousGeneratedAt || meta.generated_at_utc > previousGeneratedAt)) {
           return true;
         }
-        await new Promise(r => setTimeout(r, 25_000));
+        await new Promise((r) => setTimeout(r, 15_000));
         return poll();
       };
 
       const done = await poll();
       if (done) {
-        setRunMessage('✅ دیتای جدید منتشر شد؛ فرانت بروزرسانی می‌شود…');
+        setRunMessage('✅ دیتای جدید منتشر شد؛ در حال بارگذاری…');
         await fetchAutoData();
         setRunStatus('ok');
-        setRunMessage(null);
+        setRunMessage('✅ بروزرسانی با موفقیت انجام شد.');
+        setTimeout(() => {
+          setRunStatus('idle');
+          setRunMessage(null);
+        }, 6000);
       } else {
         setRunStatus('error');
-        setRunMessage('اجرا بیش از ۱۰ دقیقه طول کشید. دیتا ممکن است به‌زودی منتشر شود؛ دستی «بروزرسانی» را بزنید.');
+        setRunMessage('عملیات طولانی شد؛ لطفاً بعداً دکمه «بروزرسانی» را بزنید.');
       }
     } catch (err: any) {
       setRunStatus('error');
-      setRunMessage(RUN_ERROR_MESSAGES[err?.message] ?? 'اجرای دستی ناموفق بود. دوباره تلاش کنید.');
+      setRunMessage(RUN_ERROR_MESSAGES[err?.message] ?? 'اجرای پایپ‌لاین ناموفق بود.');
+      if (err?.message === 'invalid_token' || err?.message === 'not_configured') {
+        setTempTokenInput(activeToken);
+        setShowTokenModal(true);
+      }
     }
-  }, [runStatus, fetchAutoData]);
+  }, [runStatus, githubToken, fetchAutoData]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -242,20 +300,37 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={runPipeline}
-            disabled={runStatus === 'starting' || runStatus === 'running'}
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm transition-all border bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="اجرای پایپ‌لاین روی GitHub Actions و دریافت دیتای تازه"
-          >
-            <PlayCircle className={`w-4 h-4 ${runStatus === 'running' ? 'animate-pulse' : ''}`} />
-            <span>
-              {runStatus === 'starting' ? 'در حال ارسال…'
-                : runStatus === 'running' ? 'در حال اجرا…'
-                : runStatus === 'ok' ? 'انجام شد ✓'
-                : 'اجرای پایپ‌لاین'}
-            </span>
-          </button>
+          {/* دکمه اجرای پایپ‌لاین + تنظیم توکن */}
+          <div className="flex items-center rounded-lg border border-blue-500/30 bg-blue-600/20 overflow-hidden shadow-sm">
+            <button
+              onClick={() => runPipeline()}
+              disabled={runStatus === 'starting' || runStatus === 'running'}
+              className="flex items-center justify-center gap-2 px-3.5 py-2 text-sm transition-all hover:bg-blue-600/30 text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="اجرای پایپ‌لاین روی GitHub Actions و دریافت دیتای تازه"
+            >
+              <PlayCircle className={`w-4 h-4 ${runStatus === 'running' ? 'animate-pulse' : ''}`} />
+              <span>
+                {runStatus === 'starting'
+                  ? 'در حال ارسال…'
+                  : runStatus === 'running'
+                  ? 'در حال اجرا…'
+                  : runStatus === 'ok'
+                  ? 'انجام شد ✓'
+                  : 'اجرای پایپ‌لاین'}
+              </span>
+            </button>
+            <button
+              onClick={() => {
+                setTempTokenInput(githubToken);
+                setShowTokenModal(true);
+              }}
+              className="px-2.5 py-2 hover:bg-blue-600/40 text-blue-300 border-r border-blue-500/30 transition-colors"
+              title="تنظیمات توکن گیت‌هاب (PAT)"
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
           <button
             onClick={() => setShowScript(true)}
             className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700 text-sm"
@@ -294,6 +369,87 @@ export default function App() {
         </div>
         <div className="font-mono" dir="ltr">SYSTEM STATUS: LATEST | V 2.4.0</div>
       </footer>
+
+      {/* Token Settings Modal */}
+      {showTokenModal && (
+        <div
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setShowTokenModal(false)}
+        >
+          <div
+            className="bg-[#0d1117] border border-blue-500/30 rounded-xl w-full max-w-md shadow-2xl p-5 flex flex-col gap-4 text-right"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="font-bold text-sm text-blue-400 flex items-center gap-2">
+                <KeyRound className="w-4 h-4" />
+                <span>تنظیم توکن اجرای مستقیم پایپ‌لاین</span>
+              </h3>
+              <button
+                onClick={() => setShowTokenModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              برای اینکه دکمهٔ «اجرای پایپ‌لاین» بتواند مستقیماً اکشن گیت‌هاب را اجرا کند، توکن شخصی گیت‌هاب (PAT با دسترسی repo و workflow) را وارد کنید. این توکن به‌صورت امن در حافظه مرورگر شما (Local Storage) ذخیره می‌شود.
+            </p>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-slate-400">توکن گیت‌هاب (PAT):</label>
+              <input
+                type="password"
+                value={tempTokenInput}
+                onChange={(e) => setTempTokenInput(e.target.value)}
+                placeholder="ghp_..."
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 font-mono"
+                dir="ltr"
+              />
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+              {githubToken ? (
+                <button
+                  onClick={() => {
+                    setGithubToken('');
+                    setTempTokenInput('');
+                    localStorage.removeItem('bkv_github_token');
+                  }}
+                  className="text-xs text-rose-400 hover:text-rose-300"
+                >
+                  حذف توکن
+                </button>
+              ) : <div />}
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowTokenModal(false)}
+                  className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:bg-slate-800 transition-colors"
+                >
+                  انصراف
+                </button>
+                <button
+                  onClick={() => {
+                    const val = tempTokenInput.trim();
+                    setGithubToken(val);
+                    localStorage.setItem('bkv_github_token', val);
+                    setShowTokenModal(false);
+                    if (val) {
+                      setTimeout(() => runPipeline(val), 100);
+                    }
+                  }}
+                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>ذخیره و اجرا</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Script Modal */}
       {showScript && (
