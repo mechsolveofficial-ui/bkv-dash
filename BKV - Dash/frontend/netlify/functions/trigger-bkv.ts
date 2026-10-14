@@ -1,35 +1,43 @@
 // این فانکشن سمت سرور برای اجرای دستی پایپ‌لاین BKV
-//
-// کارش فقط یک چیز است: workflow_dispatch روی مخزن کد صدا بزند.
-// توکن GitHub (secret اسمش TRIGGER_TOKEN) فقط همینجا — سمت سرور — استفاده
-// می‌شود و هرگز به مرورگر کاربر نمی‌رسد.
-//
-// روی Netlify باید این environment variable ست شود:
-//   TRIGGER_TOKEN = یک Personal Access Token با پرمیشن repo (classic)
-//   TRIGGER_REPO   = "mechsolveofficial-ui/bkv-dash" (مخزنی که workflow در آن است)
-// (اختیاری) TRIGGER_FROM = "*" → فقط از دامنهٔ خود سایت اجازهٔ درخواست بده.
+// کارش workflow_dispatch روی مخزن کد است تا توکن گیت‌هاب در مرورگر لو نرود.
 
-export default async (req: { method?: string; headers: Record<string, string | string[] | undefined> }) => {
-  // CORS: فقط همان دامنهٔ سایت مجاز است (پیش‌فرض خود صفحست؛ این برای فراخوانی از دامنه‌های دیگر)
+export const handler = async (req: any, context?: any) => {
+  const isV2 = typeof Request !== 'undefined' && req instanceof Request;
+  const method = isV2 ? req.method : (req?.httpMethod || req?.method || '');
+
   const corsHeaders = {
     'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json',
   };
-  if (req.method === 'OPTIONS') {
-    return { statusCode: 204, headers: corsHeaders, body: '' };
+
+  const respond = (status: number, data: any) => {
+    const bodyStr = typeof data === 'string' ? data : JSON.stringify(data);
+    if (isV2) {
+      return new Response(bodyStr, { status, headers: corsHeaders });
+    }
+    return {
+      statusCode: status,
+      headers: corsHeaders,
+      body: bodyStr,
+    };
+  };
+
+  if (method === 'OPTIONS') {
+    return respond(204, '');
   }
-  if (req.method !== 'POST') {
-    return { statusCode: 405, headers: corsHeaders, body: JSON.stringify({ error: 'method_not_allowed' }) };
+  if (method !== 'POST') {
+    return respond(405, { error: 'method_not_allowed' });
   }
 
   const token = process.env.TRIGGER_TOKEN;
   const repo = process.env.TRIGGER_REPO || 'mechsolveofficial-ui/bkv-dash';
   if (!token) {
-    return { statusCode: 503, headers: corsHeaders, body: JSON.stringify({ error: 'not_configured' }) };
+    return respond(503, { error: 'not_configured' });
   }
 
-  // خواندن meta فعلی: اگر اختلافی بود، در پاسخ می‌گوییم که منتظر تغییرش بماند
+  // خواندن meta فعلی: برای تشخیص لحظه تغییر و انتشار دیتای جدید
   let previousGeneratedAt: string | null = null;
   try {
     const metaRes = await fetch(
@@ -41,7 +49,7 @@ export default async (req: { method?: string; headers: Record<string, string | s
       previousGeneratedAt = meta.generated_at_utc ?? null;
     }
   } catch {
-    /* مهم نیست؛ فقط برای UX است */
+    /* صرفاً برای UX است */
   }
 
   try {
@@ -57,17 +65,15 @@ export default async (req: { method?: string; headers: Record<string, string | s
     });
 
     if (res.status === 204) {
-      return {
-        statusCode: 200,
-        headers: corsHeaders,
-        body: JSON.stringify({ ok: true, previous_generated_at_utc: previousGeneratedAt }),
-      };
+      return respond(200, { ok: true, previous_generated_at_utc: previousGeneratedAt });
     }
     const text = await res.text();
     console.error('GitHub dispatch failed', res.status, text.slice(0, 500));
-    return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: 'github_error' }) };
+    return respond(502, { error: 'github_error' });
   } catch (err) {
     console.error('trigger-bkv error', err);
-    return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: 'github_error' }) };
+    return respond(500, { error: 'github_error' });
   }
 };
+
+export default handler;

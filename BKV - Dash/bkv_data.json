@@ -3907,11 +3907,35 @@
       },
       {
         "date": "1405/07/15",
-        "ime_price": 346999800.0,
-        "global_rial": 349501551.67,
-        "bubble_pct": -0.72,
-        "global_usd": 4143.2,
-        "gold_ratio": 1.0002
+        "ime_price": 349002400.0,
+        "global_rial": 350388956.68,
+        "bubble_pct": -0.4,
+        "global_usd": 4140.7,
+        "gold_ratio": 1.0
+      },
+      {
+        "date": "1405/07/16",
+        "ime_price": 351001000.0,
+        "global_rial": 355777774.21,
+        "bubble_pct": -1.34,
+        "global_usd": 4157.0,
+        "gold_ratio": 1.0
+      },
+      {
+        "date": "1405/07/20",
+        "ime_price": 346490000.0,
+        "global_rial": 353803136.51,
+        "bubble_pct": -2.07,
+        "global_usd": 4190.6,
+        "gold_ratio": 1.0
+      },
+      {
+        "date": "1405/07/21",
+        "ime_price": 334500400.0,
+        "global_rial": 348696648.71,
+        "bubble_pct": -4.07,
+        "global_usd": 4210.2,
+        "gold_ratio": 1.0
       }
     ],
     "historical": [
@@ -5140,66 +5164,66 @@
         "global_rial": 0
       },
       {
-        "date": "2026-10-07",
-        "global_usd": 4143.2,
-        "gold_ratio": 1.0002,
+        "date": "2026-10-13",
+        "global_usd": 4210.2,
+        "gold_ratio": 1.0,
         "bubble_pct": 0,
         "ime_price": 0,
         "global_rial": 0
       }
     ],
     "bubble_analysis": {
-      "Q": "Q1Q2",
-      "x": 0.4049
+      "Q": "Q0Q1",
+      "x": 0.2569
     },
     "bin_forecast": {
-      "current_bubble_pct": -0.72,
+      "current_bubble_pct": -4.07,
       "min_bubble_pct": -9.9,
       "max_bubble_pct": 12.78,
-      "total_points": 489,
-      "bin_step_pct": 0.04637,
-      "bin_index": 197,
+      "total_points": 492,
+      "bin_step_pct": 0.04609,
+      "bin_index": 126,
       "bin_range_pct": [
-        -0.808,
-        -0.669
+        -4.366,
+        -3.767
       ],
-      "bin_expanded_by": 1,
-      "matched_points": 15,
-      "avg_first_peak_return_pct": 13.16,
-      "avg_days_to_first_peak": 23.0,
-      "avg_first_trough_return_pct": -3.69,
-      "avg_days_to_first_trough": 22.57,
-      "median_first_peak_return_pct": 7.98,
-      "median_days_to_first_peak": 14.5,
-      "median_first_trough_return_pct": -3.76,
-      "median_days_to_first_trough": 21.0,
-      "peak_samples": 14,
-      "trough_samples": 7,
+      "bin_expanded_by": 6,
+      "matched_points": 13,
+      "avg_first_peak_return_pct": 16.53,
+      "avg_days_to_first_peak": 29.38,
+      "avg_first_trough_return_pct": -9.04,
+      "avg_days_to_first_trough": 24.0,
+      "median_first_peak_return_pct": 18.64,
+      "median_days_to_first_peak": 25.0,
+      "median_first_trough_return_pct": -8.83,
+      "median_days_to_first_trough": 24.5,
+      "peak_samples": 8,
+      "trough_samples": 4,
       "swing_window": 5,
       "horizons": {
         "1d": {
           "days": 1,
-          "avg_return_pct": 0.44,
-          "median_return_pct": 0.19,
-          "sample_count": 14
+          "avg_return_pct": 0.12,
+          "median_return_pct": 0.0,
+          "sample_count": 12
         },
         "1w": {
           "days": 7,
-          "avg_return_pct": 1.53,
-          "median_return_pct": 1.4,
-          "sample_count": 14
+          "avg_return_pct": 2.01,
+          "median_return_pct": 1.81,
+          "sample_count": 12
         },
         "1m": {
           "days": 30,
-          "avg_return_pct": 6.49,
-          "median_return_pct": 5.83,
-          "sample_count": 14
+          "avg_return_pct": 10.3,
+          "median_return_pct": 11.79,
+          "sample_count": 10
         },
         "3m": {
           "days": 90,
-          "avg_return_pct": 23.1,
-          "median_return_pct": 22.61,
-          "sample_count": 14
+          "avg_return_pct": 25.39,
+          "median_return_pct": 20.36,
+          "sample_count": 8
         }
       }
     }
@@ -7632,11 +7656,35 @@
       },
       {
         "date": "1405/07/15",
-        "ime_price": 2652597800.0,
-        "global_rial": 2559050361.35,
-        "bubble_pct": 3.66,
-        "global_usd": 4143.2,
-        "gold_ratio": 1.0002
+        "ime_price": 2670000000.0,
+        "global_rial": 2565547940.8,
+        "bubble_pct": 4.07,
+        "global_usd": 4140.7,
+        "gold_ratio": 1.0
+      },
+      {
+        "date": "1405/07/16",
+        "ime_price": 2679005000.0,
+        "global_rial": 2605004862.73,
+        "bubble_pct": 2.84,
+        "global_usd": 4157.0,
+        "gold_ratio": 1.0
+      },
+      {
+        "date": "1405/07/20",
+        "ime_price": 2637008000.0,
+        "global_rial": 2590546565.53,
+        "bubble_pct": 1.79,
+        "global_usd": 4190.6,
+        "gold_ratio": 1.0
+      },
+      {
+        "date": "1405/07/21",
+        "ime_price": 2550000000.0,
+        "global_rial": 2553156861.85,
+        "bubble_pct": -0.12,
+        "global_usd": 4210.2,
+        "gold_ratio": 1.0
       }
     ],
     "historical": [
@@ -8865,66 +8913,66 @@
         "global_rial": 0
       },
       {
-        "date": "2026-10-07",
-        "global_usd": 4143.2,
-        "gold_ratio": 1.0002,
+        "date": "2026-10-13",
+        "global_usd": 4210.2,
+        "gold_ratio": 1.0,
         "bubble_pct": 0,
         "ime_price": 0,
         "global_rial": 0
       }
     ],
     "bubble_analysis": {
-      "Q": "Q1Q2",
-      "x": 0.1987
+      "Q": "Q0Q1",
+      "x": 0.1098
     },
     "bin_forecast": {
-      "current_bubble_pct": 3.66,
+      "current_bubble_pct": -0.12,
       "min_bubble_pct": -4.79,
       "max_bubble_pct": 37.71,
-      "total_points": 304,
-      "bin_step_pct": 0.1398,
-      "bin_index": 60,
+      "total_points": 307,
+      "bin_step_pct": 0.13843,
+      "bin_index": 33,
       "bin_range_pct": [
-        3.319,
-        4.018
+        -0.498,
+        0.194
       ],
       "bin_expanded_by": 2,
-      "matched_points": 13,
-      "avg_first_peak_return_pct": 14.04,
-      "avg_days_to_first_peak": 21.25,
-      "avg_first_trough_return_pct": -5.84,
-      "avg_days_to_first_trough": 25.0,
-      "median_first_peak_return_pct": 11.23,
-      "median_days_to_first_peak": 19.5,
-      "median_first_trough_return_pct": -5.3,
-      "median_days_to_first_trough": 27.0,
-      "peak_samples": 12,
-      "trough_samples": 8,
+      "matched_points": 10,
+      "avg_first_peak_return_pct": 17.12,
+      "avg_days_to_first_peak": 59.5,
+      "avg_first_trough_return_pct": -12.47,
+      "avg_days_to_first_trough": 26.0,
+      "median_first_peak_return_pct": 21.16,
+      "median_days_to_first_peak": 49.0,
+      "median_first_trough_return_pct": -14.01,
+      "median_days_to_first_trough": 26.5,
+      "peak_samples": 8,
+      "trough_samples": 6,
       "swing_window": 5,
       "horizons": {
         "1d": {
           "days": 1,
-          "avg_return_pct": 1.7,
-          "median_return_pct": 0.73,
-          "sample_count": 12
+          "avg_return_pct": 1.33,
+          "median_return_pct": 0.0,
+          "sample_count": 9
         },
         "1w": {
           "days": 7,
-          "avg_return_pct": 2.53,
-          "median_return_pct": 2.75,
-          "sample_count": 12
+          "avg_return_pct": 0.31,
+          "median_return_pct": 0.51,
+          "sample_count": 9
         },
         "1m": {
           "days": 30,
-          "avg_return_pct": 7.49,
-          "median_return_pct": 5.82,
-          "sample_count": 12
+          "avg_return_pct": 1.69,
+          "median_return_pct": 0.68,
+          "sample_count": 8
         },
         "3m": {
           "days": 90,
-          "avg_return_pct": 15.04,
-          "median_return_pct": 3.3,
-          "sample_count": 11
+          "avg_return_pct": 12.02,
+          "median_return_pct": 0.55,
+          "sample_count": 7
         }
       }
     }
@@ -10821,11 +10869,35 @@
       },
       {
         "date": "1405/07/15",
-        "ime_price": 5248790.0,
-        "global_rial": 5095913.23,
-        "bubble_pct": 3.0,
-        "global_usd": 60.41,
-        "gold_ratio": 0.0146
+        "ime_price": 5267830.0,
+        "global_rial": 5068695.27,
+        "bubble_pct": 3.93,
+        "global_usd": 59.9,
+        "gold_ratio": 0.0145
+      },
+      {
+        "date": "1405/07/16",
+        "ime_price": 5327990.0,
+        "global_rial": 5055005.57,
+        "bubble_pct": 5.4,
+        "global_usd": 59.06,
+        "gold_ratio": 0.0142
+      },
+      {
+        "date": "1405/07/20",
+        "ime_price": 5130280.0,
+        "global_rial": 5077572.07,
+        "bubble_pct": 1.04,
+        "global_usd": 60.14,
+        "gold_ratio": 0.0144
+      },
+      {
+        "date": "1405/07/21",
+        "ime_price": 4989110.0,
+        "global_rial": 5012379.55,
+        "bubble_pct": -0.46,
+        "global_usd": 60.52,
+        "gold_ratio": 0.0144
       }
     ],
     "historical": [
@@ -12054,66 +12126,66 @@
         "global_rial": 0
       },
       {
-        "date": "2026-10-07",
-        "global_usd": 60.41,
-        "gold_ratio": 0.0146,
+        "date": "2026-10-13",
+        "global_usd": 60.52,
+        "gold_ratio": 0.0144,
         "bubble_pct": 0,
         "ime_price": 0,
         "global_rial": 0
       }
     ],
     "bubble_analysis": {
-      "Q": "Q1Q2",
-      "x": 0.2565
+      "Q": "Q0Q1",
+      "x": 0.1864
     },
     "bin_forecast": {
-      "current_bubble_pct": 3.0,
+      "current_bubble_pct": -0.46,
       "min_bubble_pct": -9.67,
       "max_bubble_pct": 39.72,
-      "total_points": 237,
-      "bin_step_pct": 0.20838,
-      "bin_index": 60,
+      "total_points": 240,
+      "bin_step_pct": 0.20578,
+      "bin_index": 44,
       "bin_range_pct": [
-        2.625,
-        3.25
+        -1.232,
+        0.208
       ],
-      "bin_expanded_by": 1,
-      "matched_points": 13,
-      "avg_first_peak_return_pct": 35.27,
-      "avg_days_to_first_peak": 29.73,
-      "avg_first_trough_return_pct": -8.9,
-      "avg_days_to_first_trough": 24.25,
-      "median_first_peak_return_pct": 26.44,
-      "median_days_to_first_peak": 22.0,
-      "median_first_trough_return_pct": -6.45,
-      "median_days_to_first_trough": 18.0,
-      "peak_samples": 11,
-      "trough_samples": 8,
+      "bin_expanded_by": 3,
+      "matched_points": 11,
+      "avg_first_peak_return_pct": 91.34,
+      "avg_days_to_first_peak": 79.4,
+      "avg_first_trough_return_pct": -4.74,
+      "avg_days_to_first_trough": 35.75,
+      "median_first_peak_return_pct": 87.63,
+      "median_days_to_first_peak": 57.5,
+      "median_first_trough_return_pct": -5.14,
+      "median_days_to_first_trough": 30.0,
+      "peak_samples": 10,
+      "trough_samples": 4,
       "swing_window": 5,
       "horizons": {
         "1d": {
           "days": 1,
-          "avg_return_pct": 0.29,
-          "median_return_pct": 0.0,
-          "sample_count": 12
+          "avg_return_pct": 1.19,
+          "median_return_pct": 0.39,
+          "sample_count": 10
         },
         "1w": {
           "days": 7,
-          "avg_return_pct": 7.6,
-          "median_return_pct": 3.66,
-          "sample_count": 12
+          "avg_return_pct": 1.79,
+          "median_return_pct": 1.03,
+          "sample_count": 10
         },
         "1m": {
           "days": 30,
-          "avg_return_pct": 18.01,
-          "median_return_pct": 19.83,
-          "sample_count": 11
+          "avg_return_pct": 19.44,
+          "median_return_pct": 12.69,
+          "sample_count": 10
         },
         "3m": {
           "days": 90,
-          "avg_return_pct": 10.49,
-          "median_return_pct": 1.5,
-          "sample_count": 9
+          "avg_return_pct": 43.26,
+          "median_return_pct": 27.64,
+          "sample_count": 10
         }
       }
     }
@@ -13162,10 +13234,34 @@
       },
       {
         "date": "1405/07/15",
-        "ime_price": 36996700.0,
-        "global_rial": 38474996.62,
-        "bubble_pct": -3.84,
-        "global_usd": 6.65,
+        "ime_price": 37628510.0,
+        "global_rial": 38276831.03,
+        "bubble_pct": -1.69,
+        "global_usd": 6.6,
+        "gold_ratio": 0.0016
+      },
+      {
+        "date": "1405/07/16",
+        "ime_price": 37700000.0,
+        "global_rial": 38258290.84,
+        "bubble_pct": -1.46,
+        "global_usd": 6.52,
+        "gold_ratio": 0.0016
+      },
+      {
+        "date": "1405/07/20",
+        "ime_price": 35500000.0,
+        "global_rial": 38780090.85,
+        "bubble_pct": -8.46,
+        "global_usd": 6.7,
+        "gold_ratio": 0.0016
+      },
+      {
+        "date": "1405/07/21",
+        "ime_price": 34810000.0,
+        "global_rial": 38244055.71,
+        "bubble_pct": -8.98,
+        "global_usd": 6.73,
         "gold_ratio": 0.0016
       }
     ],
@@ -14395,8 +14491,8 @@
         "global_rial": 0
       },
       {
-        "date": "2026-10-07",
-        "global_usd": 6.65,
+        "date": "2026-10-13",
+        "global_usd": 6.73,
         "gold_ratio": 0.0016,
         "bubble_pct": 0,
         "ime_price": 0,
@@ -14404,57 +14500,57 @@
       }
     ],
     "bubble_analysis": {
-      "Q": "Q3Q4",
-      "x": 0.8064
+      "Q": "Q2Q3",
+      "x": 0.6217
     },
     "bin_forecast": {
-      "current_bubble_pct": -3.84,
+      "current_bubble_pct": -8.98,
       "min_bubble_pct": -26.27,
       "max_bubble_pct": 1.54,
-      "total_points": 131,
-      "bin_step_pct": 0.21229,
-      "bin_index": 105,
+      "total_points": 134,
+      "bin_step_pct": 0.20754,
+      "bin_index": 83,
       "bin_range_pct": [
-        -5.04,
-        -2.705
+        -9.874,
+        -8.006
       ],
-      "bin_expanded_by": 5,
-      "matched_points": 10,
-      "avg_first_peak_return_pct": 13.97,
-      "avg_days_to_first_peak": 55.33,
-      "avg_first_trough_return_pct": -8.78,
-      "avg_days_to_first_trough": 23.11,
-      "median_first_peak_return_pct": 11.36,
-      "median_days_to_first_peak": 51.0,
-      "median_first_trough_return_pct": -9.44,
-      "median_days_to_first_trough": 15.0,
-      "peak_samples": 9,
-      "trough_samples": 9,
+      "bin_expanded_by": 4,
+      "matched_points": 15,
+      "avg_first_peak_return_pct": 21.97,
+      "avg_days_to_first_peak": 25.92,
+      "avg_first_trough_return_pct": -6.76,
+      "avg_days_to_first_trough": 24.7,
+      "median_first_peak_return_pct": 12.48,
+      "median_days_to_first_peak": 14.5,
+      "median_first_trough_return_pct": -4.69,
+      "median_days_to_first_trough": 20.0,
+      "peak_samples": 12,
+      "trough_samples": 10,
       "swing_window": 5,
       "horizons": {
         "1d": {
           "days": 1,
-          "avg_return_pct": -0.75,
+          "avg_return_pct": -0.3,
           "median_return_pct": 0.0,
-          "sample_count": 9
+          "sample_count": 14
         },
         "1w": {
           "days": 7,
-          "avg_return_pct": -0.28,
-          "median_return_pct": -1.2,
-          "sample_count": 9
+          "avg_return_pct": 4.86,
+          "median_return_pct": 1.07,
+          "sample_count": 13
         },
         "1m": {
           "days": 30,
-          "avg_return_pct": 0.23,
-          "median_return_pct": 1.0,
-          "sample_count": 9
+          "avg_return_pct": 3.45,
+          "median_return_pct": 1.07,
+          "sample_count": 12
         },
         "3m": {
           "days": 90,
-          "avg_return_pct": 3.9,
-          "median_return_pct": 0.0,
-          "sample_count": 9
+          "avg_return_pct": 12.69,
+          "median_return_pct": 4.9,
+          "sample_count": 11
         }
       }
     }
@@ -15503,11 +15599,35 @@
       },
       {
         "date": "1405/07/15",
-        "ime_price": 8797180.0,
-        "global_rial": 10346758.12,
-        "bubble_pct": -14.98,
+        "ime_price": 8777800.0,
+        "global_rial": 10379292.0,
+        "bubble_pct": -15.43,
         "global_usd": 3943.5,
-        "gold_ratio": 0.952
+        "gold_ratio": 0.9524
+      },
+      {
+        "date": "1405/07/16",
+        "ime_price": 9139900.0,
+        "global_rial": 10497597.0,
+        "bubble_pct": -12.93,
+        "global_usd": 3943.5,
+        "gold_ratio": 0.9486
+      },
+      {
+        "date": "1405/07/20",
+        "ime_price": 8200000.0,
+        "global_rial": 10355631.0,
+        "bubble_pct": -20.82,
+        "global_usd": 3943.5,
+        "gold_ratio": 0.941
+      },
+      {
+        "date": "1405/07/21",
+        "ime_price": 8049990.0,
+        "global_rial": 10158653.17,
+        "bubble_pct": -20.76,
+        "global_usd": 3943.5,
+        "gold_ratio": 0.9367
       }
     ],
     "historical": [
@@ -16600,9 +16720,9 @@
         "global_rial": 0
       },
       {
-        "date": "2026-10-07",
+        "date": "2026-10-13",
         "global_usd": 3943.5,
-        "gold_ratio": 0.952,
+        "gold_ratio": 0.9367,
         "bubble_pct": 0,
         "ime_price": 0,
         "global_rial": 0
@@ -16610,56 +16730,56 @@
     ],
     "bubble_analysis": {
       "Q": "Q1Q2",
-      "x": 0.248
+      "x": 0.1554
     },
     "bin_forecast": {
-      "current_bubble_pct": -14.98,
+      "current_bubble_pct": -20.76,
       "min_bubble_pct": -30.46,
       "max_bubble_pct": 31.99,
-      "total_points": 131,
-      "bin_step_pct": 0.4767,
-      "bin_index": 32,
+      "total_points": 134,
+      "bin_step_pct": 0.46603,
+      "bin_index": 20,
       "bin_range_pct": [
-        -22.834,
-        -7.103
+        -23.005,
+        -18.81
       ],
-      "bin_expanded_by": 16,
-      "matched_points": 15,
-      "avg_first_peak_return_pct": 44.02,
-      "avg_days_to_first_peak": 61.78,
-      "avg_first_trough_return_pct": -2.45,
-      "avg_days_to_first_trough": 8.0,
-      "median_first_peak_return_pct": 51.78,
-      "median_days_to_first_peak": 78.0,
-      "median_first_trough_return_pct": -2.45,
-      "median_days_to_first_trough": 8.0,
+      "bin_expanded_by": 4,
+      "matched_points": 14,
+      "avg_first_peak_return_pct": 37.1,
+      "avg_days_to_first_peak": 46.89,
+      "avg_first_trough_return_pct": -1.36,
+      "avg_days_to_first_trough": 15.0,
+      "median_first_peak_return_pct": 28.6,
+      "median_days_to_first_peak": 30.0,
+      "median_first_trough_return_pct": -1.36,
+      "median_days_to_first_trough": 15.0,
       "peak_samples": 9,
-      "trough_samples": 2,
+      "trough_samples": 1,
       "swing_window": 5,
       "horizons": {
         "1d": {
           "days": 1,
-          "avg_return_pct": 0.14,
+          "avg_return_pct": 0.04,
           "median_return_pct": 0.0,
-          "sample_count": 14
+          "sample_count": 13
         },
         "1w": {
           "days": 7,
-          "avg_return_pct": 3.33,
-          "median_return_pct": 2.06,
-          "sample_count": 11
+          "avg_return_pct": 4.7,
+          "median_return_pct": 3.01,
+          "sample_count": 12
         },
         "1m": {
           "days": 30,
-          "avg_return_pct": 12.78,
-          "median_return_pct": 8.45,
+          "avg_return_pct": 15.21,
+          "median_return_pct": 15.11,
           "sample_count": 9
         },
         "3m": {
           "days": 90,
-          "avg_return_pct": 53.09,
-          "median_return_pct": 51.01,
-          "sample_count": 6
+          "avg_return_pct": 52.74,
+          "median_return_pct": 48.77,
+          "sample_count": 4
         }
       }
     }
@@ -17708,11 +17828,35 @@
       },
       {
         "date": "1405/07/15",
-        "ime_price": 187200.0,
-        "global_rial": 239233.53,
-        "bubble_pct": -21.75,
-        "global_usd": 91.18,
+        "ime_price": 183010.0,
+        "global_rial": 239854.15,
+        "bubble_pct": -23.7,
+        "global_usd": 91.13,
         "gold_ratio": 0.022
+      },
+      {
+        "date": "1405/07/16",
+        "ime_price": 184410.0,
+        "global_rial": 242188.77,
+        "bubble_pct": -23.86,
+        "global_usd": 90.98,
+        "gold_ratio": 0.0219
+      },
+      {
+        "date": "1405/07/20",
+        "ime_price": 185000.0,
+        "global_rial": 238519.58,
+        "bubble_pct": -22.44,
+        "global_usd": 90.83,
+        "gold_ratio": 0.0217
+      },
+      {
+        "date": "1405/07/21",
+        "ime_price": 187220.0,
+        "global_rial": 233982.63,
+        "bubble_pct": -19.99,
+        "global_usd": 90.83,
+        "gold_ratio": 0.0216
       }
     ],
     "historical": [
@@ -18941,9 +19085,9 @@
         "global_rial": 0
       },
       {
-        "date": "2026-10-07",
-        "global_usd": 91.18,
-        "gold_ratio": 0.022,
+        "date": "2026-10-13",
+        "global_usd": 90.83,
+        "gold_ratio": 0.0216,
         "bubble_pct": 0,
         "ime_price": 0,
         "global_rial": 0
@@ -18951,56 +19095,56 @@
     ],
     "bubble_analysis": {
       "Q": "Q3Q4",
-      "x": 0.9666
+      "x": 1.0
     },
     "bin_forecast": {
-      "current_bubble_pct": -21.75,
+      "current_bubble_pct": -19.99,
       "min_bubble_pct": -51.43,
-      "max_bubble_pct": -20.72,
-      "total_points": 131,
-      "bin_step_pct": 0.23437,
-      "bin_index": 126,
+      "max_bubble_pct": -19.99,
+      "total_points": 134,
+      "bin_step_pct": 0.23464,
+      "bin_index": 133,
       "bin_range_pct": [
-        -33.85,
-        -20.725
+        -29.606,
+        -19.986
       ],
-      "bin_expanded_by": 51,
-      "matched_points": 22,
-      "avg_first_peak_return_pct": 15.41,
-      "avg_days_to_first_peak": 151.6,
-      "avg_first_trough_return_pct": -15.69,
-      "avg_days_to_first_trough": 41.75,
-      "median_first_peak_return_pct": 23.91,
-      "median_days_to_first_peak": 209.0,
-      "median_first_trough_return_pct": -21.95,
-      "median_days_to_first_trough": 54.5,
-      "peak_samples": 5,
-      "trough_samples": 8,
+      "bin_expanded_by": 40,
+      "matched_points": 14,
+      "avg_first_peak_return_pct": 22.82,
+      "avg_days_to_first_peak": 20.0,
+      "avg_first_trough_return_pct": -4.86,
+      "avg_days_to_first_trough": 13.5,
+      "median_first_peak_return_pct": 16.52,
+      "median_days_to_first_peak": 13.5,
+      "median_first_trough_return_pct": -4.86,
+      "median_days_to_first_trough": 13.5,
+      "peak_samples": 8,
+      "trough_samples": 2,
       "swing_window": 5,
       "horizons": {
         "1d": {
           "days": 1,
-          "avg_return_pct": -0.22,
+          "avg_return_pct": -0.32,
           "median_return_pct": 0.0,
-          "sample_count": 21
+          "sample_count": 13
         },
         "1w": {
           "days": 7,
-          "avg_return_pct": 1.79,
-          "median_return_pct": -1.09,
-          "sample_count": 18
+          "avg_return_pct": 0.18,
+          "median_return_pct": -1.77,
+          "sample_count": 10
         },
         "1m": {
           "days": 30,
-          "avg_return_pct": 3.88,
-          "median_return_pct": -7.57,
-          "sample_count": 8
+          "avg_return_pct": 23.02,
+          "median_return_pct": 23.02,
+          "sample_count": 2
         },
         "3m": {
           "days": 90,
-          "avg_return_pct": -15.02,
-          "median_return_pct": -14.95,
-          "sample_count": 5
+          "avg_return_pct": null,
+          "median_return_pct": null,
+          "sample_count": 0
         }
       }
     }
@@ -20049,11 +20193,35 @@
       },
       {
         "date": "1405/07/15",
-        "ime_price": 1453010.0,
-        "global_rial": 1957057.27,
-        "bubble_pct": -25.76,
-        "global_usd": 101.76,
-        "gold_ratio": 0.0246
+        "ime_price": 1450040.0,
+        "global_rial": 1933114.45,
+        "bubble_pct": -24.99,
+        "global_usd": 100.2,
+        "gold_ratio": 0.0242
+      },
+      {
+        "date": "1405/07/16",
+        "ime_price": 1523000.0,
+        "global_rial": 2034759.3,
+        "bubble_pct": -25.15,
+        "global_usd": 104.28,
+        "gold_ratio": 0.0251
+      },
+      {
+        "date": "1405/07/20",
+        "ime_price": 1379690.0,
+        "global_rial": 2052861.09,
+        "bubble_pct": -32.79,
+        "global_usd": 106.65,
+        "gold_ratio": 0.0254
+      },
+      {
+        "date": "1405/07/21",
+        "ime_price": 1406800.0,
+        "global_rial": 1977747.41,
+        "bubble_pct": -28.87,
+        "global_usd": 104.74,
+        "gold_ratio": 0.0249
       }
     ],
     "historical": [
@@ -21282,9 +21450,9 @@
         "global_rial": 0
       },
       {
-        "date": "2026-10-07",
-        "global_usd": 101.76,
-        "gold_ratio": 0.0246,
+        "date": "2026-10-13",
+        "global_usd": 104.74,
+        "gold_ratio": 0.0249,
         "bubble_pct": 0,
         "ime_price": 0,
         "global_rial": 0
@@ -21292,56 +21460,56 @@
     ],
     "bubble_analysis": {
       "Q": "Q2Q3",
-      "x": 0.4108
+      "x": 0.3769
     },
     "bin_forecast": {
-      "current_bubble_pct": -25.76,
+      "current_bubble_pct": -28.87,
       "min_bubble_pct": -63.44,
       "max_bubble_pct": 28.29,
-      "total_points": 131,
-      "bin_step_pct": 0.70023,
-      "bin_index": 53,
+      "total_points": 134,
+      "bin_step_pct": 0.68456,
+      "bin_index": 50,
       "bin_range_pct": [
-        -35.431,
-        -16.524
+        -38.111,
+        -19.628
       ],
       "bin_expanded_by": 13,
-      "matched_points": 17,
-      "avg_first_peak_return_pct": 28.05,
-      "avg_days_to_first_peak": 25.62,
-      "avg_first_trough_return_pct": -24.37,
-      "avg_days_to_first_trough": 33.38,
-      "median_first_peak_return_pct": 24.0,
-      "median_days_to_first_peak": 25.5,
-      "median_first_trough_return_pct": -26.48,
-      "median_days_to_first_trough": 37.5,
+      "matched_points": 14,
+      "avg_first_peak_return_pct": 23.12,
+      "avg_days_to_first_peak": 24.88,
+      "avg_first_trough_return_pct": -24.36,
+      "avg_days_to_first_trough": 42.17,
+      "median_first_peak_return_pct": 19.73,
+      "median_days_to_first_peak": 28.5,
+      "median_first_trough_return_pct": -23.11,
+      "median_days_to_first_trough": 41.5,
       "peak_samples": 8,
-      "trough_samples": 8,
+      "trough_samples": 6,
       "swing_window": 5,
       "horizons": {
         "1d": {
           "days": 1,
-          "avg_return_pct": 1.12,
-          "median_return_pct": 0.0,
-          "sample_count": 16
+          "avg_return_pct": 1.67,
+          "median_return_pct": 1.43,
+          "sample_count": 13
         },
         "1w": {
           "days": 7,
-          "avg_return_pct": 6.71,
-          "median_return_pct": 5.16,
-          "sample_count": 13
+          "avg_return_pct": 8.41,
+          "median_return_pct": 7.94,
+          "sample_count": 10
         },
         "1m": {
           "days": 30,
-          "avg_return_pct": 11.34,
-          "median_return_pct": 19.73,
-          "sample_count": 8
+          "avg_return_pct": 19.16,
+          "median_return_pct": 27.02,
+          "sample_count": 6
         },
         "3m": {
           "days": 90,
-          "avg_return_pct": 37.57,
+          "avg_return_pct": 27.69,
           "median_return_pct": 27.63,
-          "sample_count": 8
+          "sample_count": 6
         }
       }
     }

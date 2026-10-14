@@ -1,0 +1,11 @@
+# تنظیمات انتشار فرانت‌اند BKV در ریشه مخزن
+[build]
+  base = "BKV - Dash/frontend"
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
