@@ -1,18 +1,17 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { BkvData } from './types';
-import { Code2, RefreshCw, PlayCircle, KeyRound, X, Check } from 'lucide-react';
-import { PYTHON_SCRIPT } from './PythonScript';
+import { RefreshCw, PlayCircle, KeyRound, X, Check } from 'lucide-react';
 
 // =====================================================================
-// ⚙️ آدرس دیتای خودکار — خروجی GitHub Actions روی برنچ `data`
+// ⚙️ آدرس دیتای خودکار — خروجی پایپ‌لاین روی برنچ `data`
 // =====================================================================
 const DATA_BASE_URL = 'https://raw.githubusercontent.com/mechsolveofficial-ui/bkv-data/data';
 const GITHUB_REPO = ((import.meta as any).env?.VITE_GITHUB_REPO as string) || 'mechsolveofficial-ui/bkv-dash';
 const GITHUB_WORKFLOW = 'update-data.yml';
 const RUN_ENDPOINT = '/.netlify/functions/trigger-bkv';
 
-// هماهنگ با زمان‌بندی GitHub Actions (هر ۵ دقیقه)
+// هماهنگ با زمان‌بندی پایپ‌لاین (هر ۵ دقیقه)
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
 
 type DataSource = 'auto' | 'manual' | null;
@@ -20,9 +19,9 @@ type AutoStatus = 'idle' | 'loading' | 'ok' | 'error';
 type RunStatus = 'idle' | 'starting' | 'running' | 'ok' | 'error';
 
 const RUN_ERROR_MESSAGES: Record<string, string> = {
-  not_configured: 'توکن گیت‌هاب تنظیم نشده است. روی آیکون کلید کلیک کنید.',
-  invalid_token: 'توکن گیت‌هاب نامعتبر است یا دسترسی‌های لازم (repo و workflow) را ندارد.',
-  github_error: 'اجرای پایپ‌لاین در GitHub شروع نشد. وضعیت اینترنت یا توکن را بررسی کنید.',
+  not_configured: 'توکن دسترسی تنظیم نشده است. روی آیکون کلید کلیک کنید.',
+  invalid_token: 'توکن دسترسی نامعتبر است یا منقضی شده است.',
+  github_error: 'خطا در ارتباط با سرور پایپ‌لاین. وضعیت اتصال اینترنت را بررسی کنید.',
 };
 
 // نمایش تاریخ/ساعت به وقت تهران با تقویم شمسی (بدون کتابخانه اضافه)
@@ -48,9 +47,10 @@ export default function App() {
   const [autoStatus, setAutoStatus] = useState<AutoStatus>('idle');
   // پس از آپلود دستی، دریافت خودکار متوقف می‌شود تا دیتای دستی جایگزین نشود
   const [autoPaused, setAutoPaused] = useState(false);
-  const [showScript, setShowScript] = useState(false);
   const [runStatus, setRunStatus] = useState<RunStatus>('idle');
   const [runMessage, setRunMessage] = useState<string | null>(null);
+  const [runProgress, setRunProgress] = useState<number>(0);
+  const progressTimerRef = useRef<any>(null);
   const [githubToken, setGithubToken] = useState<string>(
     () => localStorage.getItem('bkv_github_token') || ((import.meta as any).env?.VITE_GITHUB_TOKEN as string) || ''
   );
@@ -64,6 +64,12 @@ export default function App() {
   useEffect(() => {
     autoPausedRef.current = autoPaused;
   }, [autoPaused]);
+
+  useEffect(() => {
+    return () => {
+      if (progressTimerRef.current) clearInterval(progressTimerRef.current);
+    };
+  }, []);
 
   const fetchAutoData = useCallback(async () => {
     if (!dataUrlConfigured) {
@@ -102,17 +108,17 @@ export default function App() {
     return () => clearInterval(id);
   }, [fetchAutoData]);
 
-  // ── ارسال درخواست اجرای پایپ‌لاین (اول از Netlify Function، سپس مستقیم از GitHub API) ──
+  // ── ارسال درخواست اجرای پایپ‌لاین (اول از Netlify Function، سپس مستقیم از سرور) ──
   const dispatchPipeline = async (token: string): Promise<void> => {
     // ۱) بررسی Netlify Function اگر فعال باشد
     try {
       const netlifyRes = await fetch(RUN_ENDPOINT, { method: 'POST' });
       if (netlifyRes.ok) return;
     } catch {
-      // سرورلس فانکشن در هاست استاتیک وجود ندارد؛ مستقیم به GitHub می‌رویم
+      // سرورلس فانکشن در هاست استاتیک وجود ندارد؛ مستقیم به سرور می‌رویم
     }
 
-    // ۲) ارتباط مستقیم با GitHub API
+    // ۲) ارتباط مستقیم با سرور پایپ‌لاین
     if (!token) {
       throw new Error('not_configured');
     }
@@ -150,8 +156,10 @@ export default function App() {
       return;
     }
 
+    if (progressTimerRef.current) clearInterval(progressTimerRef.current);
     setRunStatus('starting');
-    setRunMessage('در حال اتصال به GitHub…');
+    setRunProgress(5);
+    setRunMessage('در حال اتصال به سرور…');
     try {
       // ثبت آخرین زمان دیتای فعلی
       let previousGeneratedAt = '';
@@ -166,7 +174,13 @@ export default function App() {
       await dispatchPipeline(activeToken);
 
       setRunStatus('running');
-      setRunMessage('پایپ‌لاین در GitHub شروع شد؛ در حال استخراج و تحلیل داده‌ها…');
+      setRunProgress(15);
+      setRunMessage('در حال استخراج و تحلیل داده‌ها…');
+
+      // تایمر تخمین پیشرفت بر حسب درصد
+      progressTimerRef.current = setInterval(() => {
+        setRunProgress((prev) => (prev < 90 ? prev + 1 : prev));
+      }, 750);
 
       const deadline = Date.now() + 10 * 60 * 1000; // حداکثر ۱۰ دقیقه صبر
       const poll = async (): Promise<boolean> => {
@@ -174,34 +188,42 @@ export default function App() {
         const bust = `?t=${Date.now()}`;
         const metaRes = await fetch(`${DATA_BASE_URL}/meta.json${bust}`).catch(() => null);
         if (!metaRes || !metaRes.ok) {
-          await new Promise((r) => setTimeout(r, 15_000));
+          await new Promise((r) => setTimeout(r, 12_000));
           return poll();
         }
         const meta = await metaRes.json().catch(() => null);
         if (meta?.generated_at_utc && (!previousGeneratedAt || meta.generated_at_utc > previousGeneratedAt)) {
           return true;
         }
-        await new Promise((r) => setTimeout(r, 15_000));
+        await new Promise((r) => setTimeout(r, 12_000));
         return poll();
       };
 
       const done = await poll();
       if (done) {
-        setRunMessage('✅ دیتای جدید منتشر شد؛ در حال بارگذاری…');
+        if (progressTimerRef.current) clearInterval(progressTimerRef.current);
+        setRunProgress(96);
+        setRunMessage('در حال بارگذاری داده‌های تازه…');
         await fetchAutoData();
+        setRunProgress(100);
         setRunStatus('ok');
-        setRunMessage('✅ بروزرسانی با موفقیت انجام شد.');
+        setRunMessage('بروزرسانی داده‌ها تکمیل شد');
         setTimeout(() => {
           setRunStatus('idle');
           setRunMessage(null);
-        }, 6000);
+          setRunProgress(0);
+        }, 5000);
       } else {
+        if (progressTimerRef.current) clearInterval(progressTimerRef.current);
+        setRunProgress(0);
         setRunStatus('error');
         setRunMessage('عملیات طولانی شد؛ لطفاً بعداً دکمه «بروزرسانی» را بزنید.');
       }
     } catch (err: any) {
+      if (progressTimerRef.current) clearInterval(progressTimerRef.current);
+      setRunProgress(0);
       setRunStatus('error');
-      setRunMessage(RUN_ERROR_MESSAGES[err?.message] ?? 'اجرای پایپ‌لاین ناموفق بود.');
+      setRunMessage(RUN_ERROR_MESSAGES[err?.message] ?? 'خطا در اجرای پایپ‌لاین.');
       if (err?.message === 'invalid_token' || err?.message === 'not_configured') {
         setTempTokenInput(activeToken);
         setShowTokenModal(true);
@@ -234,86 +256,102 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#050608] text-white selection:bg-emerald-500/30 font-['Vazirmatn'] flex flex-col p-4 gap-4 overflow-x-hidden">
       {/* Header */}
-      <header className="flex flex-col md:flex-row justify-between items-center bg-[#0d1117] border border-[#1f2937] p-4 rounded-xl shrink-0 gap-3">
-        <div className="flex items-center gap-4">
-          <div className="bg-emerald-500 w-3 h-3 rounded-full animate-pulse ml-2 md:ml-0"></div>
-          <h1 className="text-xl font-bold tracking-tight text-emerald-500" dir="ltr">
+      <header className="flex flex-row justify-between items-center bg-[#0d1117] border border-[#1f2937] px-4 py-2.5 rounded-xl shrink-0 gap-3 whitespace-nowrap overflow-x-auto custom-scrollbar">
+        {/* Right: Logo */}
+        <div className="flex items-center gap-3 shrink-0 whitespace-nowrap">
+          <div className="bg-emerald-500 w-2.5 h-2.5 rounded-full animate-pulse"></div>
+          <h1 className="text-lg font-bold tracking-tight text-emerald-500 whitespace-nowrap" dir="ltr">
             BKV <span className="text-slate-400 font-normal">| Bourse Kala View</span>
           </h1>
         </div>
 
-        {/* وضعیت دیتا و آخرین بروزرسانی */}
-        <div className="flex items-center gap-2 flex-wrap justify-center">
-          {lastUpdateIso && source === 'auto' && (
+        {/* Center: Status, Progress Bar, Last Update */}
+        <div className="flex items-center gap-2.5 shrink-0 whitespace-nowrap">
+          {runStatus !== 'idle' && (
             <div
-              className="text-xs text-emerald-400 font-medium bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20"
-              title="آخرین بروزرسانی دیتا — به وقت تهران"
-            >
-              آخرین بروزرسانی: {formatTehranTime(lastUpdateIso)}
-            </div>
-          )}
-          {source === 'auto' && !lastUpdateIso && (
-            <div className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20">
-              منبع: دریافت خودکار
-            </div>
-          )}
-          {source === 'manual' && (
-            <div className="text-xs text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20">
-              منبع: آپلود دستی{autoPaused ? ' — دریافت خودکار متوقف' : ''}
-            </div>
-          )}
-          {!dataUrlConfigured && (
-            <div
-              className="text-xs text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20"
-              title="در App.tsx مقدار DATA_BASE_URL را با آدرس مخزن خود جایگزین کنید"
-            >
-              آدرس دیتای خودکار تنظیم نشده
-            </div>
-          )}
-          {runMessage && (
-            <div
-              className={`text-xs px-2 py-1 rounded border ${
+              className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg border shrink-0 whitespace-nowrap ${
                 runStatus === 'error'
                   ? 'text-rose-400 bg-rose-500/10 border-rose-500/20'
                   : 'text-blue-300 bg-blue-500/10 border-blue-500/20'
               }`}
             >
-              {runMessage}
+              {(runStatus === 'starting' || runStatus === 'running') && (
+                <div className="w-16 bg-blue-950/80 rounded-full h-1.5 overflow-hidden border border-blue-500/30 shrink-0">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-emerald-400 h-full transition-all duration-300 ease-out"
+                    style={{ width: `${runProgress}%` }}
+                  />
+                </div>
+              )}
+              {runProgress > 0 && (
+                <span className="font-mono text-[11px] font-bold text-emerald-400 shrink-0">
+                  {runProgress}%
+                </span>
+              )}
+              <span className="shrink-0">{runMessage}</span>
             </div>
           )}
-          {dataUrlConfigured && autoStatus === 'error' && (
+
+          {lastUpdateIso && source === 'auto' && (
             <div
-              className="text-xs text-rose-400 bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20"
-              title="می‌توانید فایل JSON را به‌صورت دستی آپلود کنید"
+              className="text-xs text-emerald-400 font-medium bg-emerald-500/10 px-2.5 py-1.5 rounded-lg border border-emerald-500/20 shrink-0 whitespace-nowrap"
+              title="آخرین بروزرسانی دیتا — به وقت تهران"
             >
-              اتصال به دیتای خودکار ناموفق
+              آخرین بروزرسانی: {formatTehranTime(lastUpdateIso)}
             </div>
           )}
+
+          {source === 'auto' && !lastUpdateIso && (
+            <div className="text-xs text-emerald-400 bg-emerald-500/10 px-2.5 py-1.5 rounded-lg border border-emerald-500/20 shrink-0 whitespace-nowrap">
+              دریافت خودکار فعال
+            </div>
+          )}
+
+          {source === 'manual' && (
+            <div className="text-xs text-amber-400 bg-amber-500/10 px-2.5 py-1.5 rounded-lg border border-amber-500/20 shrink-0 whitespace-nowrap">
+              منبع: دستی{autoPaused ? ' (خودکار متوقف)' : ''}
+            </div>
+          )}
+
+          {!dataUrlConfigured && (
+            <div className="text-xs text-amber-400 bg-amber-500/10 px-2.5 py-1.5 rounded-lg border border-amber-500/20 shrink-0 whitespace-nowrap">
+              آدرس دیتا تنظیم نشده
+            </div>
+          )}
+
+          {dataUrlConfigured && autoStatus === 'error' && (
+            <div className="text-xs text-rose-400 bg-rose-500/10 px-2.5 py-1.5 rounded-lg border border-rose-500/20 shrink-0 whitespace-nowrap">
+              خطا در دریافت دیتا
+            </div>
+          )}
+
           <button
             onClick={() => { setAutoPaused(false); fetchAutoData(); }}
             disabled={autoStatus === 'loading' || !dataUrlConfigured}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 whitespace-nowrap"
+            title="بروزرسانی داده‌های صفحه"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${autoStatus === 'loading' ? 'animate-spin' : ''}`} />
-            <span>{autoPaused ? 'ادامه دریافت خودکار' : 'بروزرسانی'}</span>
+            <span>{autoPaused ? 'ادامه خودکار' : 'بروزرسانی'}</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Left: Pipeline & Upload buttons */}
+        <div className="flex items-center gap-2.5 shrink-0 whitespace-nowrap">
           {/* دکمه اجرای پایپ‌لاین + تنظیم توکن */}
-          <div className="flex items-center rounded-lg border border-blue-500/30 bg-blue-600/20 overflow-hidden shadow-sm">
+          <div className="flex items-center rounded-lg border border-blue-500/30 bg-blue-600/20 overflow-hidden shadow-sm shrink-0 whitespace-nowrap">
             <button
               onClick={() => runPipeline()}
               disabled={runStatus === 'starting' || runStatus === 'running'}
-              className="flex items-center justify-center gap-2 px-3.5 py-2 text-sm transition-all hover:bg-blue-600/30 text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              title="اجرای پایپ‌لاین روی GitHub Actions و دریافت دیتای تازه"
+              className="flex items-center justify-center gap-2 px-3.5 py-1.5 text-sm transition-all hover:bg-blue-600/30 text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 whitespace-nowrap"
+              title="اجرای پایپ‌لاین و دریافت دیتای تازه"
             >
               <PlayCircle className={`w-4 h-4 ${runStatus === 'running' ? 'animate-pulse' : ''}`} />
               <span>
                 {runStatus === 'starting'
-                  ? 'در حال ارسال…'
+                  ? 'در حال اتصال…'
                   : runStatus === 'running'
-                  ? 'در حال اجرا…'
+                  ? `در حال اجرا (${runProgress}%)`
                   : runStatus === 'ok'
                   ? 'انجام شد ✓'
                   : 'اجرای پایپ‌لاین'}
@@ -324,23 +362,16 @@ export default function App() {
                 setTempTokenInput(githubToken);
                 setShowTokenModal(true);
               }}
-              className="px-2.5 py-2 hover:bg-blue-600/40 text-blue-300 border-r border-blue-500/30 transition-colors"
-              title="تنظیمات توکن گیت‌هاب (PAT)"
+              className="px-2.5 py-1.5 hover:bg-blue-600/40 text-blue-300 border-r border-blue-500/30 transition-colors shrink-0"
+              title="تنظیمات توکن دسترسی"
             >
               <KeyRound className="w-3.5 h-3.5" />
             </button>
           </div>
 
           <button
-            onClick={() => setShowScript(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700 text-sm"
-          >
-            <Code2 className="w-4 h-4" />
-            <span>اسکریپت پایتون</span>
-          </button>
-          <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm transition-all border border-emerald-400/20"
+            className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-lg text-sm transition-all border border-emerald-400/20 shrink-0 whitespace-nowrap"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
             <span>آپلود JSON</span>
@@ -383,7 +414,7 @@ export default function App() {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="font-bold text-sm text-blue-400 flex items-center gap-2">
                 <KeyRound className="w-4 h-4" />
-                <span>تنظیم توکن اجرای مستقیم پایپ‌لاین</span>
+                <span>تنظیم توکن دسترسی پایپ‌لاین</span>
               </h3>
               <button
                 onClick={() => setShowTokenModal(false)}
@@ -394,11 +425,11 @@ export default function App() {
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              برای اینکه دکمهٔ «اجرای پایپ‌لاین» بتواند مستقیماً اکشن گیت‌هاب را اجرا کند، توکن شخصی گیت‌هاب (PAT با دسترسی repo و workflow) را وارد کنید. این توکن به‌صورت امن در حافظه مرورگر شما (Local Storage) ذخیره می‌شود.
+              برای اینکه دکمهٔ «اجرای پایپ‌لاین» مستقیماً داده‌ها را بروزرسانی کند، توکن دسترسی (PAT با پرمیشن repo و workflow) را وارد کنید. این توکن فقط به‌صورت امن در حافظه مرورگر شما (Local Storage) نگهداری می‌شود.
             </p>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-slate-400">توکن گیت‌هاب (PAT):</label>
+              <label className="text-xs text-slate-400">توکن دسترسی (PAT):</label>
               <input
                 type="password"
                 value={tempTokenInput}
@@ -446,43 +477,6 @@ export default function App() {
                   <span>ذخیره و اجرا</span>
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Script Modal */}
-      {showScript && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-6" onClick={() => setShowScript(false)}>
-          <div className="bg-[#0d1117] border border-slate-700 rounded-xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-[#0d1117]">
-              <h3 className="font-bold text-sm text-emerald-500 flex items-center gap-2 uppercase tracking-widest">
-                اسکریپت بروزرسانی بورس کالا
-              </h3>
-              <button
-                onClick={() => setShowScript(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex-1 overflow-auto p-4 custom-scrollbar">
-              <div className="bg-black/50 p-4 rounded-xl border border-white/5">
-                <pre className="text-xs text-emerald-400 font-mono leading-relaxed truncate whitespace-pre-wrap" dir="ltr">
-                  {PYTHON_SCRIPT}
-                </pre>
-              </div>
-            </div>
-            <div className="p-4 border-t border-slate-800 bg-[#0d1117] flex justify-between items-center">
-              <p className="text-xs text-slate-400">
-                این کد را در Google Colab اجرا کنید، سپس فایل دیتای خروجی را در همینجا آپلود کنید.
-              </p>
-              <button
-                onClick={() => navigator.clipboard.writeText(PYTHON_SCRIPT)}
-                className="px-4 py-2 bg-emerald-900/50 hover:bg-emerald-900 border border-emerald-500/30 rounded-lg text-xs font-semibold transition-colors text-emerald-400"
-              >
-                کپی کردن کد
-              </button>
             </div>
           </div>
         </div>
